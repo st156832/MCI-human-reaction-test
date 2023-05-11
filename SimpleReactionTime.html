@@ -1,0 +1,182 @@
+<html>
+    <head>
+        <title></title>
+    </head>
+
+    <body>
+        <div id="experiment" class="centered" style="z-index:2>
+            <h1 id="title" style="text-align: center;">Simple reaction time trial</h1>
+            <div id="info">
+                <h2 >How to play</h2>
+                <p>A ring will appear at a random point on the screen. The ring will slowly fade in from the background and will gradually stand out more and more. Hit the space-bar as soon as you notice the ring!</p>
+            </div>
+            
+            <h2 id="instruction" style="text-align: center;">Press space to start!</h2>
+            
+            <div id="results" style="text-align: center; margin-top: 10px;">
+                <p id="time"></p>
+                <p id="count"></p>
+                <p id="errors"></p>
+                <p id="mean"></p>
+                <p id="sd"></p>
+            </div>
+        </div>
+        <div id="stimulus">
+            <div id="cutout"></div>
+        </div>
+    </body>
+
+    <script>
+        
+        let experimentActive = false
+        let errors = 0;
+        
+        let distanceToMiddle = 0; 
+        
+        let infoElement = document.getElementById("info")
+        let instructionElement = document.getElementById("instruction")
+        let stimulusElement = document.getElementById('stimulus');
+        
+        
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function flushCSS(color ) {
+            stimulusElement.classList.remove('background-transition')
+            setStimulusColor(color);
+            
+        }
+
+        function moveStimulus() {
+                        
+            screenHeight = window.innerHeight - stimulusElement.offsetHeight;
+            screenWidth = window.innerWidth - stimulusElement.offsetWidth;
+            
+            stimulus_y = getRandomInt(stimulusElement.offsetHeight, screenHeight);
+            stimulus_x = getRandomInt(stimulusElement.offsetWidth, screenWidth);
+            
+            screenCenter_x = window.innerWidth  /2;
+            screenCenter_y = window.innerHeight /2;
+            
+            x = screenCenter_x - stimulus_x
+            y = screenCenter_y - stimulus_y
+            distanceToMiddle = Math.hypot(x,y)
+
+            stimulusElement.style.top = stimulus_y  + 'px';
+            stimulusElement.style.left = stimulus_x  + 'px';
+
+            console.log(distanceToMiddle)
+ 
+        }
+
+        function showStimulus() {
+            moveStimulus()
+            stimulusElement.classList.add('background-transition')
+            setStimulusColor("green")
+            stimulusIsVisible = true;
+            
+        }
+
+        function setStimulusColor(newColor) {
+            stimulusElement.style.backgroundColor = newColor;
+        }
+
+        function startTestTrial() {
+            // reset the stimulus
+            stimulusIsVisible = false;
+            
+
+            // schedule the stimulus to appear after a random amount of time
+            let timeToWaitInSeconds = Math.random() * 4 + 2; // 2 - 6s
+            setTimeout(showStimulus, timeToWaitInSeconds * 1000);
+        }
+
+
+        function startExperiment() {
+            //clearResults(); // clear results of any previous tests
+            instructionElement.textContent = "Press space when you notice the ring! Press 'a' for results!";
+            infoElement.style.display = 'none';
+            // reset data and start tests
+            times = [];
+            experimentActive = true;
+            startTestTrial();
+        }        
+        
+        window.addEventListener('keydown', (event) => {
+            if (event.key === ' ') {
+                // the user pressed the space key
+                if (!experimentActive) {
+                    // start the experiment if it wasn't active
+                    stimulusElement.classList.add('background-transition')
+                    startExperiment();
+                    return;
+                }
+
+                if (stimulusIsVisible) {
+                    // record reaction time
+                    //recordStimulusReactionTime();
+                    // start next trial
+                    flushCSS('white')
+                    startTestTrial();
+                } else {
+                    //record premature input and give brief visual indicator
+                    errors++
+                    console.log(errors)
+                }
+            } else if (event.key === 'a') {
+                if (experimentActive) {
+                    // stop the experiment and show results
+                    stopExperiment();
+                }
+            } else if (event.key === 'b') {
+                // ...
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        
+        .centered {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+
+        .background-transition {
+            -webkit-transition: background-color 15s ease-in-out;
+            -moz-transition: background-color 15s ease-in-out;
+            -o-transition: background-color 15s ease-in-out;
+            -ms-transition: background-color 15s ease-in-out;
+            transition: background-color 15s ease-in-out;
+        }
+
+        #stimulus {
+            height: 100px;
+            width: 100px;
+            position: fixed;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        #cutout {
+            width: 50%;
+            height: 50%;
+            background-color: rgb(255, 255, 255);
+            position: absolute;
+            top: 25%;
+            left: 25%;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
+</html>
