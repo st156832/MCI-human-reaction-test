@@ -1,0 +1,74 @@
+<html>
+
+<head>
+    <title>Human Capabilities - Reaction test</title>
+</head>
+
+<body>
+    <div id="intro" style="max-width: 600px;">
+        <h1 style="text-align: center;">Human Capabilities - Reaction test</h1>
+        <h3>Developed by Lukas..., Glarin..., Eduard... as part of the human-computer interactions (MCI) course of the
+            university of Stuttgart, Germany. </h2>
+            <h3>What is this?</h3>
+            <p>The test consists of 3 different experiments, each measurring a different faccet of human reaction time.
+                The order of experiments as well as the experiments themselfs are randomised. </p>
+            <h3>How does this work?</h3>
+            <p>by clicking the "get started" button below, you will be presented with the first of three experiments.
+                Instruction for each experiment are displayed on screen. We ask participant to absolve 30 rounds per
+                experiment inorder to get a comparable sample size. Once the experiment is done, instructions for the
+                next experiment will be displayed on screen.</p>
+            <h3>Will my data get stored?</h3>
+            <p>No, gitHub pages does not currently support backend integration. As such we cannot store your data in a
+                database or file. Participants are thus asked to report heir results to us on the ilias thread.</p>
+            <button onclick="startExperiment()">Get Started!</button>
+    </div>
+
+
+
+</body>
+<script>
+    let experiments = [
+        "basicReactiontest.html"
+    ]
+
+    function startExperiment() {
+        experiment = experiments[Math.floor(Math.random() * experiments.length)];
+        sessionStorage.setItem("experiments", experiments.splice(experiments.indexOf(experiment), 1))
+
+        window.location.href = experiment
+    }
+</script>
+
+<style>
+    body {
+        font-family: sans-serif;
+    }
+
+    #intro {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+    button {
+        -webkit-appearance: button;
+        -moz-appearance: button;
+        appearance: button;
+
+        text-decoration: none;
+        color: initial;
+        border: 2px solid;
+        border-radius: 10px;
+        padding: 10px;
+        cursor: pointer;
+
+        margin: 0;
+        position: absolute;
+        left: 50%;
+        -ms-transform: translateX(-50%);
+        transform: translateX(-50%);
+    }
+</style>
