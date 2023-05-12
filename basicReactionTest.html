@@ -167,14 +167,14 @@
             experimentActive = false;
 
             // reset instruction and show results
-            instruction.textContent = (times.length + errors > 0) ? 'Press space to start! Press \'b\' to download your results!' : 'Press space to start!';
+            instruction.textContent = (times.length + errors > 0) ? 'Press space to start! Press \'b\' to download your results!' : 'Press space to restart!';
             showResults();
         }
 
         function downloadResults() {
             const rows = [
-                ["Experiment", "itterations", "mean", "errors", "SD"],
-                ["experiment1", times.lenght, getMean(times), errors, getStandardDeviation(times)]
+                ["Experiment", "iterations", "mean", "errors", "SD"],
+                ["0", times.length, getMean(times), errors, getStandardDeviation(times)]
             ];
 
             let csvContent = "data:text/csv;charset=utf-8,";
@@ -189,7 +189,7 @@
         }
 
         window.addEventListener('keydown', (event) => {
-            if ((times.length > 0 | errors > 0) && event.key == 'b') {
+            if ((times.length > 0 | errors > 0) && event.key === 'b') {
                 downloadResults();
             }
 
