@@ -167,11 +167,32 @@
             experimentActive = false;
 
             // reset instruction and show results
-            instruction.textContent = 'Press space to start!';
+            instruction.textContent = (times.length + errors > 0) ? 'Press space to start! Press \'b\' to download your results!' : 'Press space to start!';
             showResults();
         }
 
+        function downloadResults() {
+            const rows = [
+                ["Experiment", "itterations", "mean", "errors", "SD"],
+                ["experiment1", times.lenght, getMean(times), errors, getStandardDeviation(times)]
+            ];
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+
+            rows.forEach(function(rowArray) {
+                let row = rowArray.join(",");
+                csvContent += row + "\r\n";
+            });
+
+            var encodedUri = encodeURI(csvContent);
+            window.open(encodedUri);
+        }
+
         window.addEventListener('keydown', (event) => {
+            if ((times.length > 0 | errors > 0) && event.key == 'b') {
+                downloadResults();
+            }
+
             if (event.key === ' ') {
                 // the user pressed the space key
                 if (!experimentActive) {
