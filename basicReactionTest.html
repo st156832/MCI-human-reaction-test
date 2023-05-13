@@ -172,13 +172,13 @@
         }
 
         function startNextExperiment() {
-            experiments = sessionStorage.getItem('experiments');
+            experiments = JSON.parse(sessionStorage.getItem('experiments'));
+            nextPage = experiments.length > 0 ? experiments[Math.floor(Math.random() * experiments.length)] : "results.html";
             
-            nextExperiment = experiments[Math.floor(Math.random() * experiments.length)];
-            experiments.splice(experiments.indexOf(nextExperiment), 1)
-            sessionStorage.setItem("experiments", experiments);
+            experiments.splice(experiments.indexOf(nextPage), 1)
+            sessionStorage.setItem('experiments', JSON.stringify(experiments));
 
-            window.location.href = experiment;
+            window.location.replace(nextPage);
         }
 
         function downloadResults() {
