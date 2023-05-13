@@ -19,6 +19,7 @@
                 <p id="hit"></p>
                 <p id="errors"></p>
                 <p id="mean"></p>
+                <p id="distance"></p>
                 <p id="sd"></p>
             </div>
         </div>
@@ -36,7 +37,8 @@
         let stimulusTimestamp;
         let meanDeltaTime;
         let stdDev;
-        let distanceToMiddle = 0; 
+        let distanceToMiddle = [];
+        let meanDistance = [];        
         
         let infoElement = document.getElementById("info")
         let instructionElement = document.getElementById("instruction")
@@ -47,6 +49,8 @@
         let stdDevElement = document.getElementById('sd');
         let errorElement = document.getElementById('errors');
         let hitElement = document.getElementById('hit');
+        let distanceElement = document.getElementById('distance');
+
         
 
         function getRandomInt(min, max) {
@@ -59,6 +63,21 @@
             let sum = 0;
             for (let value of data) sum += value;
             return sum / data.length;
+        }
+
+        function getAverageDistance() {
+            x = 0.0;
+            y = 0.0;
+            
+            distanceToMiddle.forEach(element => {
+              x += element[0];
+              y += element[1];
+            });
+            
+            ave_x =  x/distanceToMiddle.length;
+            ave_y = y/distanceToMiddle.length;
+
+            return [Math.round((ave_x + Number.EPSILON) * 100) / 100, Math.round((ave_y + Number.EPSILON) * 100) / 100]
         }
 
         function getStandardDeviation(data) {
@@ -87,18 +106,23 @@
             screenHeight = window.innerHeight - stimulusElement.offsetHeight;
             screenWidth = window.innerWidth - stimulusElement.offsetWidth;
             
-            stimulus_y = getRandomInt(stimulusElement.offsetHeight, screenHeight);
-            stimulus_x = getRandomInt(stimulusElement.offsetWidth, screenWidth);
+            stimulus_y = getRandomInt(0, screenHeight);
+            stimulus_x = getRandomInt(0, screenWidth);
             
-            screenCenter_x = window.innerWidth  /2;
-            screenCenter_y = window.innerHeight /2;
+            screenCenter = [window.innerWidth /2, window.innerHeight /2];
             
-            x = screenCenter_x - stimulus_x
-            y = screenCenter_y - stimulus_y
-            distanceToMiddle = Math.hypot(x,y)
-
+            total_x = window.innerWidth - screenCenter[0]
+            total_y = window.innerHeight - screenCenter[1]
+            
             stimulusElement.style.top = stimulus_y  + 'px';
             stimulusElement.style.left = stimulus_x  + 'px';
+
+            bounds = stimulusElement.getBoundingClientRect();
+            new_x = (bounds.left + bounds.right) / 2;
+            new_y = (bounds.top + bounds.bottom) / 2;
+
+            percent_distance = [Math.abs(screenCenter[0] - new_x)/total_x, Math.abs(screenCenter[1] - new_y)/total_y];
+            distanceToMiddle.push(percent_distance);
         }
 
         function showStimulus() {
@@ -131,12 +155,13 @@
             meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
             stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
             errorElement.textContent = 'Errors: ' + errors
+            distanceElement.textContent = 'average distance: ' + getAverageDistance();
         }
 
         function downloadResults() {
             const rows = [
-                ["Experiment", "successes", "errors", "mean", "SD"],
-                ["1", times.length, errors, getMean(times), getStandardDeviation(times)]
+                ["Experiment", "successes", "errors", "meanTime", "meanDistance", "SD"],
+                ["1", times.length, errors, getMean(times), getMean(distanceToMiddle), getStandardDeviation(times)]
             ];
 
             let csvContent = "data:text/csv;charset=utf-8,";
