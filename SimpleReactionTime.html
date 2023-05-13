@@ -19,7 +19,8 @@
                 <p id="hit"></p>
                 <p id="errors"></p>
                 <p id="mean"></p>
-                <p id="distance"></p>
+                <p id="distance_x"></p>
+                <p id="distance_y"></p>
                 <p id="sd"></p>
             </div>
         </div>
@@ -37,9 +38,9 @@
         let stimulusTimestamp;
         let meanDeltaTime;
         let stdDev;
-        let distanceToMiddle = [];
-        let meanDistance = [];        
-        
+        let xDistanceToMiddle = [];
+        let yDistanceToMiddle = [];
+                
         let infoElement = document.getElementById("info")
         let instructionElement = document.getElementById("instruction")
         let stimulusElement = document.getElementById('stimulus');
@@ -49,7 +50,8 @@
         let stdDevElement = document.getElementById('sd');
         let errorElement = document.getElementById('errors');
         let hitElement = document.getElementById('hit');
-        let distanceElement = document.getElementById('distance');
+        let xDistanceElement = document.getElementById('distance_x');
+        let yDistanceElement = document.getElementById('distance_y');
 
         
 
@@ -65,19 +67,27 @@
             return sum / data.length;
         }
 
-        function getAverageDistance() {
-            x = 0.0;
-            y = 0.0;
-            
-            distanceToMiddle.forEach(element => {
-              x += element[0];
-              y += element[1];
-            });
-            
-            ave_x =  x/distanceToMiddle.length;
-            ave_y = y/distanceToMiddle.length;
+        function getCoefficient(arr1, arr2) {
+            return Math.round(((getCovariance(arr1, arr2) / (getStandardDeviation(arr1) + getStandardDeviation(arr2))) + Number.EPSILON) * 100) / 100 
+        }
 
-            return [Math.round((ave_x + Number.EPSILON) * 100) / 100, Math.round((ave_y + Number.EPSILON) * 100) / 100]
+        function getCovariance(arr1, arr2) {
+            let sum = 0;
+            let mean_arr1 = getMean(arr1);
+            let mean_arr2 = getMean(arr2);
+            
+            for(let i = 0; i < arr1.length; i++)
+                sum = sum + (arr1[i] - mean_arr1) * (arr2[i] - mean_arr2);
+                     
+            return sum / (arr1.length - 1);
+        }
+
+        function getPercentageTime() {
+            percentageTimes = [];
+            times.forEach(element => {
+                percentageTimes.push(element/15000)
+            });
+            return percentageTimes;
         }
 
         function getStandardDeviation(data) {
@@ -122,7 +132,9 @@
             new_y = (bounds.top + bounds.bottom) / 2;
 
             percent_distance = [Math.abs(screenCenter[0] - new_x)/total_x, Math.abs(screenCenter[1] - new_y)/total_y];
-            distanceToMiddle.push(percent_distance);
+            
+            xDistanceToMiddle.push(percent_distance[0]);
+            yDistanceToMiddle.push(percent_distance[1]);
         }
 
         function showStimulus() {
@@ -140,7 +152,7 @@
         function recordStimulusReactionTime() {
             let deltaTime = Date.now() - stimulusTimestamp;
             times.push(deltaTime);
-            console.log(deltaTime);
+            
             timeElement.textContent = deltaTime + ' ms';
         }
 
@@ -155,13 +167,15 @@
             meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
             stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
             errorElement.textContent = 'Errors: ' + errors
-            distanceElement.textContent = 'average distance: ' + getAverageDistance();
+            xDistanceElement.textContent = 'Cor. Coefficient - %time/%xDistance: ' + getCoefficient(getPercentageTime(), xDistanceToMiddle);
+            yDistanceElement.textContent = 'Cor. Coefficient - %time/%yDistance: ' + getCoefficient(getPercentageTime(), yDistanceToMiddle);
         }
 
         function downloadResults() {
             const rows = [
-                ["Experiment", "successes", "errors", "meanTime", "meanDistance", "SD"],
-                ["1", times.length, errors, getMean(times), getMean(distanceToMiddle), getStandardDeviation(times)]
+                ["Experiment", "successes", "errors", "meanTime", "xDistance", 'yDistance', 'correlationCoefficientX', 'correlationCoefficientY', "SD"],
+                ["1", times.length, errors, getMean(times), xDistanceToMiddle, yDistanceToMiddle, getCoefficient(getPercentageTime(),
+                  xDistanceToMiddle), getCoefficient(getPercentageTime(), yDistanceToMiddle), getStandardDeviation(times)]
             ];
 
             let csvContent = "data:text/csv;charset=utf-8,";
