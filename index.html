@@ -28,13 +28,15 @@
 </body>
 <script>
     let experiments = [
-        "basicReactionTest.html"
+        "basicReactionTest.html",
+        "SimpleReactionTime.html"
     ]
 
     function startExperiment() {
         experiment = experiments[Math.floor(Math.random() * experiments.length)];
-        sessionStorage.setItem("experiments", experiments.splice(experiments.indexOf(experiment), 1))
-
+        experiments.splice(experiments.indexOf(experiment), 1)
+        sessionStorage.setItem("experiments", experiments)
+                
         window.location.href = experiment
     }
 </script>

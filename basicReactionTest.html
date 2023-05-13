@@ -56,7 +56,7 @@
             <div id="cutout"></div>
         </div>
         <div id="results" style="text-align: center; margin-top: 10px;">
-            <p id="time"></p>
+            <p id="time" style="font-weight: bold;"></p>
             <p id="count"></p>
             <p id="errors"></p>
             <p id="mean"></p>
@@ -117,7 +117,7 @@
             let meanDeltaTime = getMean(times);
             let stdDev = getStandardDeviation(times);
 
-
+            timeElement.textContent = 'Press \'d\' to begin the next experiment'
             countElement.textContent = 'Count: ' + times.length;
             meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
             stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
@@ -171,6 +171,16 @@
             showResults();
         }
 
+        function startNextExperiment() {
+            experiments = sessionStorage.getItem('experiments');
+            
+            nextExperiment = experiments[Math.floor(Math.random() * experiments.length)];
+            experiments.splice(experiments.indexOf(nextExperiment), 1)
+            sessionStorage.setItem("experiments", experiments);
+
+            window.location.href = experiment;
+        }
+
         function downloadResults() {
             const rows = [
                 ["Experiment", "iterations", "mean", "errors", "SD"],
@@ -189,10 +199,6 @@
         }
 
         window.addEventListener('keydown', (event) => {
-            if ((times.length > 0 | errors > 0) && event.key === 'b') {
-                downloadResults();
-            }
-
             if (event.key === ' ') {
                 // the user pressed the space key
                 if (!experimentActive) {
@@ -212,14 +218,19 @@
                     setStimulusColor('red');
                     setTimeout(() => { setStimulusColor('black'); }, 200)
                 }
-            } else if (event.key === 'a') {
+            } else if (event.key === 'a' && (errors > 0 | times.length > 0)) {
                 if (experimentActive) {
                     // stop the experiment and show results
                     stopExperiment();
                 }
-            } else if (event.key === 'b') {
-                // ...
-            }
+            } else if (!experimentActive) {
+                if (event.key === 'd') {
+                    startNextExperiment();
+                } else if (event.key === 'b') {
+                    downloadResults();
+                }
+
+            }    
         });
     </script>
 </body>
