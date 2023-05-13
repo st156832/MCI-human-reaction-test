@@ -7,7 +7,8 @@
 <body>
     <div id="intro" style="max-width: 600px;">
         <h1 style="text-align: center;">Human Capabilities - Reaction test</h1>
-        <h3>Developed by Lukas Czurgel(3349234), Glarin Langston(3470129), Eduard-Christian Talos(3589379)  as part of the human-computer interactions (MCI) course of the
+        <h3>Developed by Lukas Czurgel(3349234), Glarin Langston(3470129), Eduard-Christian Talos(3589379) as part of
+            the human-computer interactions (MCI) course of the
             university of Stuttgart, Germany. </h2>
             <h3>What is this?</h3>
             <p>The test consists of 3 different experiments, each measuring a different facet of human reaction time.
@@ -30,14 +31,14 @@
     let experiments = [
         "basicReactionTest.html",
         "SimpleReactionTime.html"
-        
+
     ]
 
     function startExperiment() {
         experiment = experiments[Math.floor(Math.random() * experiments.length)];
         experiments.splice(experiments.indexOf(experiment), 1)
         sessionStorage.setItem('experiments', JSON.stringify(experiments))
-        
+
         window.location.replace(experiment)
     }
 </script>

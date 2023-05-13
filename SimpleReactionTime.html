@@ -1,314 +1,317 @@
 <html>
-    <head>
-        <title></title>
-    </head>
 
-    <body>
-        <div id="experiment" class="centered" style="z-index:2">
-            <h1 id="title" style="text-align: center;">Simple reaction time trial</h1>
-            <div id="info">
-                <h2 >How to play</h2>
-                <p>A ring will appear at a random point on the screen. The ring will slowly fade in from the background and will gradually stand out more and more. Hit the space-bar as soon as you notice the ring!</p>
-            </div>
-            
-            <h2 id="instruction" style="text-align: center;">Press space to start!</h2>
-            
-            <div id="results" style="text-align: center; margin-top: 10px;">
-                <p id="time" style="font-weight: bold;"></p>
-                <p id="count"></p>
-                <p id="hit"></p>
-                <p id="errors"></p>
-                <p id="mean"></p>
-                <p id="distance_x"></p>
-                <p id="distance_y"></p>
-                <p id="sd"></p>
-            </div>
+<head>
+    <title></title>
+</head>
+
+<body>
+    <div id="experiment" class="centered" style="z-index:2">
+        <h1 id="title" style="text-align: center;">Simple reaction time trial</h1>
+        <div id="info">
+            <h2>How to play</h2>
+            <p>A ring will appear at a random point on the screen. The ring will slowly fade in from the background and
+                will gradually stand out more and more. Hit the space-bar as soon as you notice the ring!</p>
         </div>
-        <div id="stimulus">
-            <div id="cutout"></div>
+
+        <h2 id="instruction" style="text-align: center;">Press space to start!</h2>
+
+        <div id="results" style="text-align: center; margin-top: 10px;">
+            <p id="time" style="font-weight: bold;"></p>
+            <p id="count"></p>
+            <p id="hit"></p>
+            <p id="errors"></p>
+            <p id="mean"></p>
+            <p id="distance_x"></p>
+            <p id="distance_y"></p>
+            <p id="sd"></p>
         </div>
-    </body>
+    </div>
+    <div id="stimulus">
+        <div id="cutout"></div>
+    </div>
+</body>
 
-    <script>
-        
-        let experimentActive = false
-        let errors = 0;
-        let times = [];
-        let testStimulusTimeout;
-        let stimulusTimestamp;
-        let meanDeltaTime;
-        let stdDev;
-        let xDistanceToMiddle = [];
-        let yDistanceToMiddle = [];
-                
-        let infoElement = document.getElementById("info")
-        let instructionElement = document.getElementById("instruction")
-        let stimulusElement = document.getElementById('stimulus');
-        let timeElement = document.getElementById('time');
-        let countElement = document.getElementById('count');
-        let meanElement = document.getElementById('mean');
-        let stdDevElement = document.getElementById('sd');
-        let errorElement = document.getElementById('errors');
-        let hitElement = document.getElementById('hit');
-        let xDistanceElement = document.getElementById('distance_x');
-        let yDistanceElement = document.getElementById('distance_y');
+<script>
 
-        
+    let experimentActive = false
+    let errors = 0;
+    let times = [];
+    let testStimulusTimeout;
+    let stimulusTimestamp;
+    let meanDeltaTime;
+    let stdDev;
+    let xDistanceToMiddle = [];
+    let yDistanceToMiddle = [];
 
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function getMean(data) {
-            let sum = 0;
-            for (let value of data) sum += value;
-            return sum / data.length;
-        }
-
-        function getCoefficient(arr1, arr2) {
-            return Math.round(((getCovariance(arr1, arr2) / (getStandardDeviation(arr1) + getStandardDeviation(arr2))) + Number.EPSILON) * 100) / 100 
-        }
-
-        function getCovariance(arr1, arr2) {
-            let sum = 0;
-            let mean_arr1 = getMean(arr1);
-            let mean_arr2 = getMean(arr2);
-            
-            for(let i = 0; i < arr1.length; i++)
-                sum = sum + (arr1[i] - mean_arr1) * (arr2[i] - mean_arr2);
-                     
-            return sum / (arr1.length - 1);
-        }
-
-        function getPercentageTime() {
-            percentageTimes = [];
-            times.forEach(element => {
-                percentageTimes.push(element/15000)
-            });
-            return percentageTimes;
-        }
-
-        function getStandardDeviation(data) {
-            let mean = getMean(data);
-            let squareSum = 0;
-            for (let value of data) squareSum += (value - mean) ** 2;
-            return Math.sqrt(squareSum / data.length);
-        }
-
-        function clearResults() {
-            countElement.textContent = '';
-            hitElement.textContent = '';
-            meanElement.textContent = '';
-            stdDevElement.textContent = '';
-            errorElement.textContent = '';
-        }
-
-        function flushCSS(color ) {
-            stimulusElement.classList.remove('background-transition')
-            setStimulusColor(color);
-            
-        }
-
-        function moveStimulus() {
-                        
-            screenHeight = window.innerHeight - stimulusElement.offsetHeight;
-            screenWidth = window.innerWidth - stimulusElement.offsetWidth;
-            
-            stimulus_y = getRandomInt(0, screenHeight);
-            stimulus_x = getRandomInt(0, screenWidth);
-            
-            screenCenter = [window.innerWidth /2, window.innerHeight /2];
-            
-            total_x = window.innerWidth - screenCenter[0]
-            total_y = window.innerHeight - screenCenter[1]
-            
-            stimulusElement.style.top = stimulus_y  + 'px';
-            stimulusElement.style.left = stimulus_x  + 'px';
-
-            bounds = stimulusElement.getBoundingClientRect();
-            new_x = (bounds.left + bounds.right) / 2;
-            new_y = (bounds.top + bounds.bottom) / 2;
-
-            percent_distance = [Math.abs(screenCenter[0] - new_x)/total_x, Math.abs(screenCenter[1] - new_y)/total_y];
-            
-            xDistanceToMiddle.push(percent_distance[0]);
-            yDistanceToMiddle.push(percent_distance[1]);
-        }
-
-        function showStimulus() {
-            moveStimulus()
-            stimulusElement.classList.add('background-transition')
-            setStimulusColor("green")
-            stimulusIsVisible = true;
-            stimulusTimestamp = Date.now();            
-        }
-
-        function setStimulusColor(newColor) {
-            stimulusElement.style.backgroundColor = newColor;
-        }
-
-        function recordStimulusReactionTime() {
-            let deltaTime = Date.now() - stimulusTimestamp;
-            times.push(deltaTime);
-            
-            timeElement.textContent = deltaTime + ' ms';
-        }
-
-        function showResults() {
-            let meanDeltaTime = getMean(times);
-            let stdDev = getStandardDeviation(times);
+    let infoElement = document.getElementById("info")
+    let instructionElement = document.getElementById("instruction")
+    let stimulusElement = document.getElementById('stimulus');
+    let timeElement = document.getElementById('time');
+    let countElement = document.getElementById('count');
+    let meanElement = document.getElementById('mean');
+    let stdDevElement = document.getElementById('sd');
+    let errorElement = document.getElementById('errors');
+    let hitElement = document.getElementById('hit');
+    let xDistanceElement = document.getElementById('distance_x');
+    let yDistanceElement = document.getElementById('distance_y');
 
 
-            timeElement.textContent = 'Press \'d\' to begin the next experiment'
-            countElement.textContent = 'Iterations: ' + (times.length + errors) ;
-            hitElement.textContent = 'successful hits: ' + times.length;
-            meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
-            stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
-            errorElement.textContent = 'Errors: ' + errors
-            xDistanceElement.textContent = 'Cor. Coefficient - %time/%xDistance: ' + getCoefficient(getPercentageTime(), xDistanceToMiddle);
-            yDistanceElement.textContent = 'Cor. Coefficient - %time/%yDistance: ' + getCoefficient(getPercentageTime(), yDistanceToMiddle);
-        }
 
-        function downloadResults() {
-            const rows = [
-                ["Experiment", "successes", "errors", "meanTime", "xDistance", 'yDistance', 'correlationCoefficientX', 'correlationCoefficientY', "SD"],
-                ["1", times.length, errors, getMean(times), xDistanceToMiddle, yDistanceToMiddle, getCoefficient(getPercentageTime(),
-                  xDistanceToMiddle), getCoefficient(getPercentageTime(), yDistanceToMiddle), getStandardDeviation(times)]
-            ];
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
-            let csvContent = "data:text/csv;charset=utf-8,";
+    function getMean(data) {
+        let sum = 0;
+        for (let value of data) sum += value;
+        return sum / data.length;
+    }
 
-            rows.forEach(function(rowArray) {
-                let row = rowArray.join(",");
-                csvContent += row + "\r\n";
-            });
+    function getCoefficient(arr1, arr2) {
+        return Math.round(((getCovariance(arr1, arr2) / (getStandardDeviation(arr1) + getStandardDeviation(arr2))) + Number.EPSILON) * 100) / 100
+    }
 
-            var encodedUri = encodeURI(csvContent);
-            window.open(encodedUri);
-        }
+    function getCovariance(arr1, arr2) {
+        let sum = 0;
+        let mean_arr1 = getMean(arr1);
+        let mean_arr2 = getMean(arr2);
 
-        function startTestTrial() {
-            // reset the stimulus
-            stimulusIsVisible = false;
-            clearResults();
+        for (let i = 0; i < arr1.length; i++)
+            sum = sum + (arr1[i] - mean_arr1) * (arr2[i] - mean_arr2);
 
-            // schedule the stimulus to appear after a random amount of time
-            let timeToWaitInSeconds = Math.random() * 4 + 2; // 2 - 6s
-            testStimulusTimeout = setTimeout(showStimulus, timeToWaitInSeconds * 1000);
-        }
+        return sum / (arr1.length - 1);
+    }
 
-        function startExperiment() {
-            //clearResults(); // clear results of any previous tests
-            instructionElement.textContent = "Press space when you notice the ring! Press 'a' for results!";
-            infoElement.style.display = 'none';
-            // reset data and start tests
-            times = [];
-            experimentActive = true;
-            startTestTrial();
-        }
-
-        function startNextExperiment() {
-            experiments = JSON.parse(sessionStorage.getItem('experiments'));
-            nextPage = experiments.length > 0 ? experiments[Math.floor(Math.random() * experiments.length)] : "results.html";
-            
-            experiments.splice(experiments.indexOf(nextPage), 1)
-            sessionStorage.setItem('experiments', JSON.stringify(experiments));
-
-            window.location.replace(nextPage);
-        }
-        
-        function stopExperiment() {
-            // cancel any ongoing tests
-            clearTimeout(testStimulusTimeout);
-            stimulusIsVisible = false;
-            experimentActive = false;
-
-            // reset instruction and show results
-            instruction.textContent = (times.length + errors > 0) ? 'Press space to restart! Press \'b\' to download your results!' : 'Press space to restart!';
-            showResults();
-        }
-        
-        window.addEventListener('keydown', (event) => {
-            if (event.key === ' ') {
-                // the user pressed the space key
-                if (!experimentActive) {
-                    // start the experiment if it wasn't active
-                    stimulusElement.classList.add('background-transition')
-                    startExperiment();
-                    return;
-                }
-
-                if (stimulusIsVisible) {
-                    // record reaction time
-                    //recordStimulusReactionTime();
-                    // start next trial
-                    recordStimulusReactionTime();
-                    flushCSS('white')
-                    startTestTrial();
-                } else {
-                    //record premature input and give brief visual indicator
-                    errors++
-                }
-            } else if (event.key === 'a' && (errors > 0 | times.length > 0)) {
-                if (experimentActive) {
-                    // stop the experiment and show results
-                    stopExperiment();
-                }
-            } else if (!experimentActive) {
-                if (event.key === 'd') {
-                    startNextExperiment();
-                } else if (event.key === 'b') {
-                    downloadResults();
-                }
-            }            
+    function getPercentageTime() {
+        percentageTimes = [];
+        times.forEach(element => {
+            percentageTimes.push(element / 15000)
         });
-    </script>
+        return percentageTimes;
+    }
 
-    <style>
-        body {
-            font-family: sans-serif;
-        }
+    function getStandardDeviation(data) {
+        let mean = getMean(data);
+        let squareSum = 0;
+        for (let value of data) squareSum += (value - mean) ** 2;
+        return Math.sqrt(squareSum / data.length);
+    }
 
-        p::after {
-            content: '\200b';
-        }
-        
-        .centered {
-            margin: 0;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            -ms-transform: translate(-50%, -50%);
-            transform: translate(-50%, -50%);
-        }
+    function clearResults() {
+        countElement.textContent = '';
+        hitElement.textContent = '';
+        meanElement.textContent = '';
+        stdDevElement.textContent = '';
+        errorElement.textContent = '';
+    }
 
-        .background-transition {
-            -webkit-transition: background-color 15s ease-in-out;
-            -moz-transition: background-color 15s ease-in-out;
-            -o-transition: background-color 15s ease-in-out;
-            -ms-transition: background-color 15s ease-in-out;
-            transition: background-color 15s ease-in-out;
-        }
+    function flushCSS(color) {
+        stimulusElement.classList.remove('background-transition')
+        setStimulusColor(color);
 
-        #stimulus {
-            height: 100px;
-            width: 100px;
-            position: relative;
-            border-radius: 50%;
-            z-index: 1;
-        }
+    }
 
-        #cutout {
-            width: 50%;
-            height: 50%;
-            background-color: rgb(255, 255, 255);
-            position: absolute;
-            top: 25%;
-            left: 25%;
-            border-radius: 50%;
-            pointer-events: none;
+    function moveStimulus() {
+
+        screenHeight = window.innerHeight - stimulusElement.offsetHeight - 20;
+        screenWidth = window.innerWidth - stimulusElement.offsetWidth - 20;
+
+        stimulus_y = getRandomInt(0, screenHeight);
+        stimulus_x = getRandomInt(0, screenWidth);
+
+        screenCenter = [window.innerWidth / 2, window.innerHeight / 2];
+
+        total_x = window.innerWidth - screenCenter[0]
+        total_y = window.innerHeight - screenCenter[1]
+
+        stimulusElement.style.top = stimulus_y + 'px';
+        stimulusElement.style.left = stimulus_x + 'px';
+
+        bounds = stimulusElement.getBoundingClientRect();
+        new_x = (bounds.left + bounds.right) / 2;
+        new_y = (bounds.top + bounds.bottom) / 2;
+
+        percent_distance = [Math.abs(screenCenter[0] - new_x) / total_x, Math.abs(screenCenter[1] - new_y) / total_y];
+
+        xDistanceToMiddle.push(percent_distance[0]);
+        yDistanceToMiddle.push(percent_distance[1]);
+    }
+
+    function showStimulus() {
+        moveStimulus()
+        stimulusElement.classList.add('background-transition')
+        setStimulusColor("green")
+        stimulusIsVisible = true;
+        stimulusTimestamp = Date.now();
+    }
+
+    function setStimulusColor(newColor) {
+        stimulusElement.style.backgroundColor = newColor;
+    }
+
+    function recordStimulusReactionTime() {
+        let deltaTime = Date.now() - stimulusTimestamp;
+        times.push(deltaTime);
+
+        timeElement.textContent = deltaTime + ' ms';
+    }
+
+    function showResults() {
+        let meanDeltaTime = getMean(times);
+        let stdDev = getStandardDeviation(times);
+
+
+        timeElement.textContent = 'Press \'d\' to begin the next experiment'
+        countElement.textContent = 'Iterations: ' + (times.length + errors);
+        hitElement.textContent = 'successful hits: ' + times.length;
+        meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
+        stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
+        errorElement.textContent = 'Errors: ' + errors
+        xDistanceElement.textContent = 'Cor. Coefficient - %time/%xDistance: ' + getCoefficient(getPercentageTime(), xDistanceToMiddle);
+        yDistanceElement.textContent = 'Cor. Coefficient - %time/%yDistance: ' + getCoefficient(getPercentageTime(), yDistanceToMiddle);
+    }
+
+    function downloadResults() {
+        const rows = [
+            ["Experiment", "successes", "errors", "meanTime", 'correlationCoefficientX', 'correlationCoefficientY', "SD"],
+            ["1", times.length, errors, getMean(times), getCoefficient(getPercentageTime(), xDistanceToMiddle), getCoefficient(getPercentageTime(),
+                yDistanceToMiddle), getStandardDeviation(times), '[' + xDistanceToMiddle + ']', '[' + yDistanceToMiddle + ']']
+        ];
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        rows.forEach(function (rowArray) {
+            let row = rowArray.join(",");
+            csvContent += row + "\r\n";
+        });
+
+        var encodedUri = encodeURI(csvContent);
+        window.open(encodedUri);
+    }
+
+    function startTestTrial() {
+        // reset the stimulus
+        stimulusIsVisible = false;
+        clearResults();
+
+        // schedule the stimulus to appear after a random amount of time
+        let timeToWaitInSeconds = Math.random() * 4 + 2; // 2 - 6s
+        testStimulusTimeout = setTimeout(showStimulus, timeToWaitInSeconds * 1000);
+    }
+
+    function startExperiment() {
+        //clearResults(); // clear results of any previous tests
+        instructionElement.textContent = "Press space when you notice the ring! Press 'a' for results!";
+        infoElement.style.display = 'none';
+        // reset data and start tests
+        times = [];
+        experimentActive = true;
+        startTestTrial();
+    }
+
+    function startNextExperiment() {
+        experiments = JSON.parse(sessionStorage.getItem('experiments'));
+        nextPage = experiments.length > 0 ? experiments[Math.floor(Math.random() * experiments.length)] : "results.html";
+
+        experiments.splice(experiments.indexOf(nextPage), 1)
+        sessionStorage.setItem('experiments', JSON.stringify(experiments));
+
+        window.location.replace(nextPage);
+    }
+
+    function stopExperiment() {
+        // cancel any ongoing tests
+        clearTimeout(testStimulusTimeout);
+        stimulusIsVisible = false;
+        experimentActive = false;
+
+        // reset instruction and show results
+        instruction.textContent = (times.length + errors > 0) ? 'Press space to restart! Press \'b\' to download your results!' : 'Press space to restart!';
+        showResults();
+    }
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === ' ') {
+            // the user pressed the space key
+            if (!experimentActive) {
+                // start the experiment if it wasn't active
+                stimulusElement.classList.add('background-transition')
+                startExperiment();
+                return;
+            }
+
+            if (stimulusIsVisible) {
+                // record reaction time
+                //recordStimulusReactionTime();
+                // start next trial
+                recordStimulusReactionTime();
+                flushCSS('white')
+                startTestTrial();
+            } else {
+                //record premature input and give brief visual indicator
+                errors++
+            }
+        } else if (event.key === 'a' && (errors > 0 | times.length > 0)) {
+            if (experimentActive) {
+                // stop the experiment and show results
+                stopExperiment();
+            }
+        } else if (!experimentActive) {
+            if (event.key === 'd') {
+                startNextExperiment();
+            } else if (event.key === 'b') {
+                downloadResults();
+            }
         }
-    </style>
+    });
+</script>
+
+<style>
+    body {
+        font-family: sans-serif;
+    }
+
+    p::after {
+        content: '\200b';
+    }
+
+    .centered {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+    .background-transition {
+        -webkit-transition: background-color 15s ease-in-out;
+        -moz-transition: background-color 15s ease-in-out;
+        -o-transition: background-color 15s ease-in-out;
+        -ms-transition: background-color 15s ease-in-out;
+        transition: background-color 15s ease-in-out;
+    }
+
+    #stimulus {
+        height: 100px;
+        width: 100px;
+        position: relative;
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    #cutout {
+        width: 50%;
+        height: 50%;
+        background-color: rgb(255, 255, 255);
+        position: absolute;
+        top: 25%;
+        left: 25%;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+</style>
+
 </html>
