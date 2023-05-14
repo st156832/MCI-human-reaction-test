@@ -181,9 +181,9 @@
 
     function downloadResults() {
         const rows = [
-            ["Experiment", "successes", "errors", "meanTime", 'correlationCoefficientX', 'correlationCoefficientY', "SD"],
+            ["Experiment", "successes", "errors", "meanTime", "correlationCoefficientX", "correlationCoefficientY", "screenSize" ,"SD"],
             ["1", times.length, errors, getMean(times), getCoefficient(getPercentageTime(), xDistanceToMiddle), getCoefficient(getPercentageTime(),
-                yDistanceToMiddle), getStandardDeviation(times), '[' + xDistanceToMiddle + ']', '[' + yDistanceToMiddle + ']']
+                yDistanceToMiddle), '[' + [window.innerWidth, window.innerHeight] + ']', getStandardDeviation(times)]
         ];
 
         let csvContent = "data:text/csv;charset=utf-8,";
@@ -194,7 +194,7 @@
         });
 
         var encodedUri = encodeURI(csvContent);
-        window.open(encodedUri);
+        location.href = (encodedUri);
     }
 
     function startTestTrial() {
@@ -242,9 +242,7 @@
         flushCSS('white');
 
         // reset instruction and show results
-        let instruction = times.length == duration ?  'Get ready for the next experiment! ' : 'Press space to restart the trial! '
-        console.log(instruction);
-        instructionElement.textContent = instruction +  'Press \'b\' to download your results!';
+        instructionElement.textContent = times.length == duration ?  'Get ready for the next experiment!' : 'Press space to restart the experiment!';
         showResults();
     }
 
@@ -265,6 +263,7 @@
                 recordStimulusReactionTime();
                 flushCSS('white')
                 if(times.length == duration) {
+                    downloadResults();
                     stopExperiment();
                 } else {
                     startTestTrial();
@@ -282,9 +281,7 @@
         } else if (!experimentActive) {
             if (event.key === 'd') {
                 startNextExperiment();
-            } else if (event.key === 'b') {
-                downloadResults();
-            }
+            } 
         }
     });
 </script>
