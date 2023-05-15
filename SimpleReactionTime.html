@@ -166,7 +166,7 @@
         let stdDev = getStandardDeviation(times);
 
         if(times.length == duration) {
-            timeElement.textContent = 'Press \'d\' to begin the next experiment';
+            timeElement.textContent = 'Press \'n\' to begin the next experiment';
         } else {
             timeElement.textContent = 'last measurement: ' + times[times.length - 1] + 'ms';   
         }
@@ -279,7 +279,7 @@
                 stopExperiment();
             }
         } else if (!experimentActive) {
-            if (event.key === 'd') {
+            if (event.key === 'n') {
                 startNextExperiment();
             } 
         }
