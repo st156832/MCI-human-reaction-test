@@ -239,8 +239,9 @@
         image.style.width = '700px';
         document.getElementById("stimulus").appendChild(image);
       } else {
-        img.style.display = "block";
         img.src = "Städte/" + images[times.length] + ".jpg";
+        img.style.display = "block";
+        
       }
       stimulusTimestamp = Date.now();
     }
