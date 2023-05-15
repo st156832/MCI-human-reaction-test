@@ -204,8 +204,8 @@
     function startTestTrial() {
       if (times.length === 30) {
         instructionElement.textContent = 'Press n for next experiment.';
-        downloadResults();
         stopExperiment();
+        downloadResults();
 
       } else {
         // reset the stimulus
