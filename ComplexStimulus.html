@@ -136,6 +136,16 @@ function clearResults() {
   faultEuElement.textContent = '';
   faultAsElement.textContent = '';
   faultNAElement.textContent = '';
+  totalFaultRate = 0;
+  faultRateEu = 0;
+  faultRateAs = 0;
+  faultRateNA = 0;
+  truEu = 0;
+  truAs = 0;
+  truNA = 0;
+  falEu = 0;
+  falAs = 0;
+  falNA = 0;
 }
 
 function showResults() {
@@ -157,6 +167,7 @@ function showResults() {
 }
 
 function downloadResults() {
+            console.log("test1");
             const rows = [
                 ["Experiment", "Meantime", "Standard Derivation", "total error rate", "europe error rate", "asia error rate", "north-america error rate"],
                 ["3", Math.round(meanDeltaTime),Math.round(stdDev), Math.round(getFaultRate()), Math.round(getFaultRateEu()), Math.round(getFaultRateAs()), Math.round(getFaultRateNA())]
@@ -171,6 +182,7 @@ function downloadResults() {
 
             var encodedUri = encodeURI(csvContent);
             window.open(encodedUri);
+            console.log("test2");
           
 }
 
@@ -191,9 +203,7 @@ function startNextExperiment() {
 function startTestTrial() {
    if (times.length === 30){
                 stopExperiment();
-                downloadResults();
-                return;
-  }
+  }else{
   // reset the stimulus
   setStimulusColor('white');
   stimulusElement.style.display = "block";
@@ -203,17 +213,15 @@ function startTestTrial() {
   if (img != null) {
     img.style.display = "none";
   }
-  // schedule the stimulus to appear after a random amount of time
-  let timeToWaitInSeconds = Math.random() * 4 + 2; // 2 - 6s
+  // schedule the stimulus to appear after a random amount of time Math.random() * 4 + 2;
+  let timeToWaitInSeconds = 1  // 2 - 6s
   testStimulusTimeout = setTimeout(showStimulus, timeToWaitInSeconds * 1000);
+  }
 }
 
 function showStimulus() {
   var img = document.getElementById("image");
   stimulusIsVisible = true;
-  if (img != null) {
-    img.style.display = "block";
-  }
   timeElement.textContent = '';
   var img = document.getElementById("image");
   if (img === null) {
@@ -224,6 +232,7 @@ function showStimulus() {
     image.style.width = '700px';
     document.getElementById("stimulus").appendChild(image);
   } else {
+    img.style.display = "block";
     img.src =  "Städte/"+images[ times.length]+".jpg";
   }
   stimulusTimestamp = Date.now();
@@ -233,6 +242,7 @@ function recordStimulusReactionTime() {
   let deltaTime = Date.now() - stimulusTimestamp;
   times.push(deltaTime);
   timeElement.textContent = deltaTime + ' ms';
+  console.log(times);
 }
 
 function startExperiment() {
@@ -271,7 +281,7 @@ function stopExperiment() {
   document.getElementById('pressA').style.display = "none";
   stimulusElement.style.display = "none";
   // reset instruction and show results
-  instruction.textContent =  'Press space to restart! Press \'b\' to download your results!';
+  instruction.textContent =  'Press space to restart! Press \'b\' to download your results! Press \'n\' to start next experiment.';
   showResults();
 }
 
@@ -292,9 +302,7 @@ window.addEventListener('keydown', (event) => {
       // record reaction time
       recordStimulusReactionTime();
       // start next trial
-      if ( times.length < 29){
       startTestTrial();
-      }
     }
   }
   // the user pressed the ' ' key
@@ -319,9 +327,8 @@ window.addEventListener('keydown', (event) => {
       // record reaction time
       recordStimulusReactionTime();
       // start next trial
-     if ( times.length < 29){
       startTestTrial();
-      }
+      
     }
   } else if (event.key === 'g') {
     if (images[ times.length] > 19) {
@@ -338,15 +345,13 @@ window.addEventListener('keydown', (event) => {
       // record reaction time
       recordStimulusReactionTime();
       // start next trial
-     if ( times.length < 29){
       startTestTrial();
-      }
+      
     }
   } else if (event.key === 'a') {
     if (experimentActive) {
       // stop the experiment and show results
       stopExperiment();
-      downloadResults();
     }
   } 
 
