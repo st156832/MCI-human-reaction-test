@@ -12,7 +12,6 @@
                     <p>A random shape will appear on screen. Hit the space bar only if you recognize a triangle! As soon as you reach 30 valid data collections, the experiment will automatically stop and download your data. You can stop the experiment at any point by pressing 'a' but keep in mind that by doing so, you have to start the experiment again.</p>
                 </div>
                 <h2 id="instruction" style="text-align: center;">Press space to start!</h2>
-                <p>Press 'a' at any time to see results.</p>
                 <p id="validCounter"></p>
                 <p id="time" style="font-weight: bold;"></p>
             </center>
@@ -205,7 +204,7 @@
             let blueStdDev = getStandardDeviation(blueTimes);
 
 
-            timeElement.textContent = 'Press \'d\' to begin the next experiment';
+            timeElement.textContent = 'Press \'n\' to begin the next experiment';
             totalAttemptsElement.textContent = 'Attempts total: ' + totalAttempts;
             meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
             greenMeanElement.textContent = 'Green Mean: ' + Math.round(meanDeltaTimeGreen) + ' ms';
@@ -279,7 +278,7 @@
             experimentActive = false;
 
             // reset instruction and show results
-            instruction.textContent = (times.length + errors > 0) ? 'Press space to restart! Press \'b\' to download your results!' : 'Press space to restart!';
+            instruction.textContent = (times.length + errors > 0) ? 'Press space to restart!' : 'Press space to restart!';
             showResults();
         }
         
@@ -333,13 +332,9 @@
                     // stop the experiment and show results
                     stopExperiment();
                 }
-            } else if (!experimentActive) {
-                if (event.key === 'd') {
-                    startNextExperiment();
-                } else if (event.key === 'b') {
-                    downloadResults();
-                }
-            }            
+            } else if (event.key === 'n' && !experimentActive) {
+                startNextExperiment();
+            }    
         });
     
     </script>
