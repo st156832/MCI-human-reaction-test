@@ -1,0 +1,403 @@
+<html>
+
+<head>
+    <title></title>
+</head>
+
+<body>
+    <div id="experiment" class="centered" style="z-index:2">
+        <h1 id="title" style="text-align: center;">Decision reaction time trial</h1>
+        <center>
+            <div id="info">
+                <h2>How to play:</h2>
+                <p>A random shape will appear on screen. Hit the space bar only if you recognize a triangle! As soon as
+                    you reach 30 valid data collections, the experiment will automatically stop and download your data.
+                    You can stop the experiment at any point by pressing 'a' but keep in mind that by doing so, you have
+                    to start the experiment again.</p>
+            </div>
+            <h2 id="instruction" style="text-align: center;">Press space to start!</h2>
+            <p id="validCounter"></p>
+            <p id="time" style="font-weight: bold;"></p>
+        </center>
+
+
+        <div id="stimContainer" class="container">
+            <center>
+                <div id="square"></div>
+            </center>
+            <center>
+                <div id="triangle"></div>
+            </center>
+        </div>
+
+        <div id="results" style="text-align: center; margin-top: 10px;">
+            <div class="grid-container">
+                <div>
+                    <p id="totalAttempts"></p>
+                    <p id="errors"></p>
+                    <p id="prematureErrors"></p>
+                </div>
+                <div>
+                    <p id="greenErrors"></p>
+                    <p id="greenMean"></p>
+                    <p id="greenSd"></p>
+                </div>
+                <div>
+                    <p id="blueErrors"></p>
+                    <p id="blueMean"></p>
+                    <p id="blueSd"></p>
+                </div>
+                <div>
+                    <p id="mean"></p>
+                    <p id="sd"></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+
+    let experimentActive = false
+    let errors = 0;
+    let validCounter = 0;
+    let totalAttempts = 0;
+    let prematureErrors = 0;
+    let greenErrors = 0;
+    let blueErrors = 0;
+    let stimulusIsTriangle;
+    let stimulusIsBlue;
+    let times = [];
+    let blueTimes = [];
+    let greenTimes = [];
+    let testStimulusTimeout;
+    let squareTimeout;
+    let prematureTimeout;
+    let stimulusTimestamp;
+    let meanDeltaTime;
+    let meanDeltaTimeGreen;
+    let meanDeltaTimeBlue;
+    let stdDev;
+    let stdDevGreen;
+    let stdDevBlue;
+
+    let stimulusIsVisible = false;
+
+    let infoElement = document.getElementById("info")
+    let instructionElement = document.getElementById("instruction")
+    let timeElement = document.getElementById('time');
+    let validCounterElement = document.getElementById('validCounter');
+    let meanElement = document.getElementById('mean');
+    let blueMeanElement = document.getElementById('blueMean');
+    let greenMeanElement = document.getElementById('greenMean');
+    let stdDevElement = document.getElementById('sd');
+    let greenStdDevElement = document.getElementById('greenSd');
+    let blueStdDevElement = document.getElementById('blueSd');
+    let errorElement = document.getElementById('errors');
+    let prematureErrorElement = document.getElementById('prematureErrors');
+    let greenErrorElement = document.getElementById('greenErrors');
+    let blueErrorElement = document.getElementById('blueErrors');
+    let totalAttemptsElement = document.getElementById('totalAttempts');
+
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getMean(data) {
+        let sum = 0;
+        for (let value of data) sum += value;
+        return sum / data.length;
+    }
+
+    function getStandardDeviation(data) {
+        let mean = getMean(data);
+        let squareSum = 0;
+        for (let value of data) squareSum += (value - mean) ** 2;
+        return Math.sqrt(squareSum / data.length);
+    }
+
+    function clearResults() {
+        totalAttemptsElement.textContent = '';
+        meanElement.textContent = '';
+        greenMeanElement.textContent = '';
+        blueMeanElement.textContent = '';
+        stdDevElement.textContent = '';
+        greenStdDevElement.textContent = '';
+        blueStdDevElement.textContent = '';
+        errorElement.textContent = '';
+        prematureErrorElement.textContent = '';
+        greenErrorElement.textContent = '';
+        blueErrorElement.textContent = '';
+    }
+
+    function changeStimulus() {
+        let size = Math.floor(Math.random() * 201) + 100;
+        stimulusIsBlue = Math.random() < 0.5;
+        stimulusIsTriangle = Math.random() < 0.5;
+
+        // Place stimulus in the middle of the screen
+        let stimulus_x = window.innerWidth / 2;
+        let stimulus_y = window.innerHeight / 2;
+
+        if (stimulusIsBlue) {
+            setStimulusColor("blue");
+        } else {
+            setStimulusColor("green");
+        }
+
+        if (!stimulusIsTriangle) {
+            square.style.width = size + 'px';
+            square.style.height = size + 'px';
+            square.style.display = "block";
+            triangle.style.display = "none";
+        } else {
+            triangle.style.borderBottom = size + "px solid ";
+            triangle.style.borderLeft = size / 2 + "px solid transparent";
+            triangle.style.borderRight = size / 2 + "px solid transparent";
+            triangle.style.display = "block";
+            square.style.display = "none";
+        }
+
+    }
+
+    function showStimulus() {
+        changeStimulus();
+        stimulusIsVisible = true;
+        stimulusTimestamp = Date.now();
+        if (!stimulusIsTriangle) {
+            squareTimeout = setTimeout(() => {
+                startTestTrial();
+                instructionElement.textContent = "Good job!";
+            }, 3000);
+        }
+    }
+
+    function setStimulusColor(newColor) {
+        // Set color of triangle to newColor
+        triangle.style.color = newColor;
+
+        // Set color of square to newColor
+        square.style.backgroundColor = newColor;
+    }
+
+    function recordStimulusReactionTime() {
+        let deltaTime = Date.now() - stimulusTimestamp;
+        times.push(deltaTime);
+        validCounter++;
+        console.log(deltaTime);
+        timeElement.textContent = 'Reaction time: ' + deltaTime + ' ms';
+
+        if (stimulusIsBlue) {
+            blueTimes.push(deltaTime);
+
+        } else {
+            greenTimes.push(deltaTime);
+        }
+    }
+
+    function showResults() {
+        let meanDeltaTime = getMean(times);
+        let meanDeltaTimeGreen = getMean(greenTimes);
+        let meanDeltaTimeBlue = getMean(blueTimes);
+        let stdDev = getStandardDeviation(times);
+        let greenStdDev = getStandardDeviation(greenTimes);
+        let blueStdDev = getStandardDeviation(blueTimes);
+
+        if (times.length === 30) {
+            timeElement.textContent = 'Press \'n\' to begin the next experiment';
+            document.getElementById("stimContainer").style.display = 'none';
+        } else {
+            timeElement.textContent = '';
+        }
+        totalAttemptsElement.textContent = 'Attempts total: ' + totalAttempts;
+        meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
+        greenMeanElement.textContent = 'Green Mean: ' + Math.round(meanDeltaTimeGreen) + ' ms';
+        blueMeanElement.textContent = 'Blue Mean: ' + Math.round(meanDeltaTimeBlue) + ' ms';
+        stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
+        greenStdDevElement.textContent = 'Green SD: ' + Math.round(greenStdDev) + ' ms';
+        blueStdDevElement.textContent = 'Blue SD: ' + Math.round(blueStdDev) + ' ms';
+        errorElement.textContent = 'Errors: ' + errors;
+        greenErrorElement.textContent = 'Green Error Rate: ' + (greenErrors / errors).toFixed(3);
+        blueErrorElement.textContent = 'Blue Error Rate: ' + (blueErrors / errors).toFixed(3);
+        prematureErrorElement.textContent = 'Premature Error Rate: ' + (prematureErrors / errors).toFixed(3);
+
+    }
+
+    function downloadResults() {
+        const rows = [
+            ["Experiment", "total attempts", "successes", "total error rate", "premature error rate", "error rate green", "error rate blue", "mean", "mean green", "mean blue", "sd", "sd green", "sd blue"],
+            ["2", totalAttempts, times.length, (errors / totalAttempts), (prematureErrors / totalAttempts).toFixed(3), (greenErrors / totalAttempts).toFixed(3), (blueErrors / totalAttempts).toFixed(3), getMean(times), getMean(greenTimes), getMean(blueTimes), getStandardDeviation(times), getStandardDeviation(greenTimes), getStandardDeviation(blueTimes)]
+        ];
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        rows.forEach(function (rowArray) {
+            let row = rowArray.join(",");
+            csvContent += row + "\r\n";
+        });
+
+        var encodedUri = encodeURI(csvContent);
+        location.href = (encodedUri);
+    }
+
+    function startTestTrial() {
+        validCounter = times.length;
+        totalAttempts = times.length + errors;
+        validCounterElement.textContent = "Valid Attempts: " + validCounter;
+        // reset the stimulus
+        triangle.style.display = "none";
+        square.style.display = "none";
+        stimulusIsVisible = false;
+        // schedule the stimulus to appear after a random amount of time
+        let timeToWaitInSeconds = Math.random() * 4 + 2; // 2 - 6s
+        testStimulusTimeout = setTimeout(showStimulus, timeToWaitInSeconds * 1000);
+    }
+
+    function startExperiment() {
+        validCounterElement.textContent = "Valid Attempts: " + 0;
+        clearResults(); // clear results of any previous tests
+        instructionElement.textContent = "Press space only if you notice a triangle (blue or green)!";
+        infoElement.style.display = 'none';
+        // reset data and start tests
+        times = [];
+        experimentActive = true;
+        startTestTrial();
+    }
+
+    function startNextExperiment() {
+        experiments = sessionStorage.getItem('experiments');
+        console.log(experiments)
+        nextExperiment = experiments[Math.floor(Math.random() * experiments.length)];
+        experiments.splice(experiments.indexOf(nextExperiment), 1)
+        sessionStorage.setItem("experiments", experiments);
+
+        window.location.href = experiment;
+    }
+
+    function stopExperiment() {
+        // cancel any ongoing tests
+        clearTimeout(testStimulusTimeout);
+        clearTimeout(squareTimeout);
+        stimulusIsVisible = false;
+        experimentActive = false;
+
+        // reset instruction and show results
+        instruction.textContent = (times.length + errors > 0) ? 'Press space to restart!' : 'Press space to restart!';
+        showResults();
+    }
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === ' ') {
+            event.preventDefault();
+            // the user pressed the space key
+            if (!experimentActive) {
+                // start the experiment if it wasn't active
+                timeElement.textContent = "";
+                startExperiment();
+                return;
+            }
+
+            if (stimulusIsVisible) {
+                if (stimulusIsTriangle) {
+                    // start next trial
+                    recordStimulusReactionTime();
+                    if (times.length === 30) {
+                        stopExperiment();
+                        downloadResults();
+                        validCounterElement.textContent = "Valid Attempts: " + validCounter;
+                        return;
+                    }
+                    instructionElement.textContent = "Good job!";
+                    startTestTrial();
+                } else {
+                    //record wrong input (square instead of triangle)
+                    instructionElement.textContent = "You made a mistake. That was not a triangle."
+                    timeElement.textContent = 'Reaction time: error';
+                    errors++;
+                    console.log(errors);
+
+                    if (stimulusIsBlue) {
+                        blueErrors++;
+                    } else {
+                        greenErrors++;
+                    }
+                }
+            } else {
+                //record premature input and inform user about it
+                clearTimeout(testStimulusTimeout);
+                instructionElement.textContent = "You made a premature input. Try to press space only after seeing the shape."
+                errors++;
+                prematureErrors++;
+                console.log(errors);
+                startTestTrial();
+            }
+
+        } else if (event.key === 'a' && (errors > 0 | times.length > 0)) {
+            if (experimentActive) {
+                // stop the experiment and show results
+                stopExperiment();
+            }
+        } else if (event.key === 'n' && !experimentActive && times.length === 30) {
+            startNextExperiment();
+        }
+    });
+
+</script>
+
+<style>
+    body {
+        font-family: sans-serif;
+    }
+
+    p::after {
+        content: '\200b';
+    }
+
+    .centered {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+    .container {
+        width: 300px;
+        height: 300px;
+        margin: 0 auto;
+    }
+
+    .grid-container {
+        display: grid;
+        column-gap: 20px;
+        grid-template-columns: auto auto auto auto;
+        background-color: transparent;
+        padding: 10px;
+    }
+
+    #triangle {
+        position: relative;
+        width: 0;
+        height: 0;
+        display: none;
+        border-left: 50px solid transparent;
+        border-right: 50px solid transparent;
+        border-bottom: 100px solid;
+        z-index: 1;
+    }
+
+    #square {
+        position: relative;
+        height: 0;
+        width: 0;
+        display: none;
+        z-index: 1;
+    }
+</style>
+
+</html>
