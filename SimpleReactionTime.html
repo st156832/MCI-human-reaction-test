@@ -8,7 +8,7 @@
     <div id="experiment" class="centered" style="z-index:2">
         <h1 id="title" style="text-align: center;">Simple reaction time trial</h1>
         <div id="info">
-            <h2>How to play</h2>
+            <h2 style="text-align: center;">How to play</h2>
             <p>In each trial, a green ring will appear at a random point on the screen. The ring will slowly fade in from the background and
                 will gradually stand out more and more. Hit the space-bar as soon as you notice the ring. The experiment is considered complete,
                 when you have successfully hit 30 rings. Pressing the space-bar too early, will be counted as an error and will not count towards the total.</p>
@@ -166,7 +166,7 @@
         let stdDev = getStandardDeviation(times);
 
         if(times.length == duration) {
-            timeElement.textContent = 'Press \'n\' to begin the next experiment';
+            timeElement.textContent = 'Press \'n\' to begin the next experiment, press space to restart!';
         } else {
             timeElement.textContent = 'last measurement: ' + times[times.length - 1] + 'ms';   
         }
