@@ -59,7 +59,7 @@
 
 <script>
 
-    let experimentActive = false
+    let experimentActive = false;
     let errors = 0;
     let validCounter = 0;
     let totalAttempts = 0;
@@ -264,6 +264,14 @@
         infoElement.style.display = 'none';
         // reset data and start tests
         times = [];
+        experimentActive = false;
+        validCounter = 0;
+        totalAttempts = 0;
+        errors = 0;
+        prematureErrors = 0;
+        greenErrors = 0;
+        blueErrors = 0;
+        errors = 0;
         experimentActive = true;
         startTestTrial();
     }
