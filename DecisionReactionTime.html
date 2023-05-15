@@ -168,7 +168,7 @@
                 squareTimeout = setTimeout(() => {
                     startTestTrial();
                     instructionElement.textContent = "Good job!";
-                }, 5000);
+                }, 3000);
             }           
         }
 
@@ -205,6 +205,7 @@
 
             if (times.length === 30) {    
                 timeElement.textContent = 'Press \'n\' to begin the next experiment';
+                triangle.style.display = 'none';
             } else {
                 timeElement.textContent = '';
             }
