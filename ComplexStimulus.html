@@ -13,9 +13,18 @@ height:
 </style>
   </head>
   <body>
-  <h1 id="title">User Study - B3</h1>
-  <h2 id="instruction">Press space to start!</h2>
-  <div id="stimulus"></div>
+  <h1 id="title" style="text-align: center;">Complex stimulus trial</h1>
+   <center>
+                <div id="info">
+                    <h2 >How to play:</h2>
+                    <p>You will see pictures of different cities around the world. If you think the city is in europe press 'D', for asia press 'F' and for north-america press 'G'.</p>
+                </div>
+                <h2 id="instruction" style="text-align: center;"></h2>
+                <p id="pressA">Press 'a' at any time to end trial and show results.</p>
+                <p id="visibleCounter"></p>
+                <p id="time" style="font-weight: bold;"></p>
+            </center>
+  <div id="stimulus" style="display: block; margin-left: auto; margin-right: auto; width: 50%;"></div>
   <p id="time"></p>
   <p id="count"></p>
   <p id="mean"></p>
@@ -43,6 +52,10 @@ let totalFaultRate;
 let faultRateEu;
 let faultrateAs;
 let faultRateNA;
+// count number of cities displayed for each continent
+let countEu = 0;
+let countAs = 0;
+let countNA = 0;
 
 
 // europe city guessed right
@@ -76,6 +89,10 @@ let faultAsElement = document.getElementById('faultsAs');
 let faultNAElement = document.getElementById('faultsNA');
 let instructionElement = document.getElementById('instruction');
 let stimulusElement = document.getElementById('stimulus');
+let infoElement = document.getElementById("info");
+instructionElement.textContent = "Press space to start!";
+let meanDeltaTime;
+let stdDev;
 
 function getMean(data) {
   let sum = 0;
@@ -96,18 +113,18 @@ function getFaultRate(){
 }
 function getFaultRateEu(){
   let faultsEu = falEu; 
-  let rateEu = (faultsEu/times.length) * 100;
-  return rate;
+  let rateEu = (faultsEu/countEu) * 100;
+  return rateEu;
 }
 function getFaultRateAs(){
   let faultsAs = falAs;
-  let rateAs = (faultsAs/times.length) * 100;
-  return rate;
+  let rateAs = (faultsAs/countAs) * 100;
+  return rateAs;
 }
 function getFaultRateNA(){
   let faultsNA = falNA;
-  let rateNA = (faultsNA/times.length) * 100;
-  return rate;
+  let rateNA = (faultsNA/countNA) * 100;
+  return rateNA;
 }
 
 function clearResults() {
@@ -122,29 +139,65 @@ function clearResults() {
 }
 
 function showResults() {
-  let meanDeltaTime = getMean(times);
-  let stdDev = getStandardDeviation(times);
-  let totalFaultRate = getFaultRate();
-  let faultRateEu = getFaultRateEu();
-  let faultRateAs = getFaultRateAs();
-  let faultRateNA = getFaultRateNA();
-
+  meanDeltaTime = getMean(times);
+  stdDev = getStandardDeviation(times);
+  totalFaultRate = getFaultRate();
+  faultRateEu = getFaultRateEu();
+  faultRateAs = getFaultRateAs();
+  faultRateNA = getFaultRateNA();
+  
+  timeElement.textContent = 'Press \'n\' to begin the next experiment';
   countElement.textContent = 'Count: ' + times.length;
   meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
   stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
-  faultElement.textContent = 'Total Fault Rate: ' + getFaultRate() + '%';
-  faultEuElement.textContent = 'Fault Rate Europe: ' + getFaultRateEu() + '%';
-  faultAsElement.textContent = 'Fault Rate Asia: ' + getFaultRateAs() + '%';
-  faultNAElement.textContent = 'Fault Rate North America: ' + getFaultRateNA() + '%';
+  faultElement.textContent = 'Total Fault Rate: ' + Math.round(getFaultRate()) + '%';
+  faultEuElement.textContent = 'Fault Rate Europe: ' + Math.round(getFaultRateEu()) + '%';
+  faultAsElement.textContent = 'Fault Rate Asia: ' + Math.round(getFaultRateAs()) + '%';
+  faultNAElement.textContent = 'Fault Rate North America: ' + Math.round(getFaultRateNA()) + '%';
+}
+
+function downloadResults() {
+            const rows = [
+                ["Experiment", "Meantime", "Standard Derivation", "total error rate", "europe error rate", "asia error rate", "north-america error rate"],
+                ["3", Math.round(meanDeltaTime),Math.round(stdDev), Math.round(getFaultRate()), Math.round(getFaultRateEu()), Math.round(getFaultRateAs()), Math.round(getFaultRateNA())]
+            ];
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+
+            rows.forEach(function(rowArray) {
+                let row = rowArray.join(",");
+                csvContent += row + "\r\n";
+            });
+
+            var encodedUri = encodeURI(csvContent);
+            window.open(encodedUri);
+          
 }
 
 function setStimulusColor(newColor) {
   stimulusElement.style.backgroundColor = newColor;
 }
 
+function startNextExperiment() {
+            experiments = sessionStorage.getItem('experiments');
+            console.log(experiments)
+            nextExperiment = experiments[Math.floor(Math.random() * experiments.length)];
+            experiments.splice(experiments.indexOf(nextExperiment), 1)
+            sessionStorage.setItem("experiments", experiments);
+
+            window.location.href = experiment;
+        }
+
 function startTestTrial() {
+   if (times.length === 30){
+                stopExperiment();
+                downloadResults();
+                return;
+  }
   // reset the stimulus
   setStimulusColor('white');
+  stimulusElement.style.display = "block";
+  document.getElementById("pressA").style.display = "block";
   stimulusIsVisible = false;
   var img = document.getElementById("image");
   if (img != null) {
@@ -184,7 +237,8 @@ function recordStimulusReactionTime() {
 
 function startExperiment() {
   clearResults(); // clear results of any previous tests
-  instructionElement.textContent = "You will see pictures of different cities around the world. If you think the city is in Europe press 'D', for asia press 'F' and for north-america press 'G'. If you press the wrong button, it will be evaluated as a mistake. Press 'a' for results!";
+  infoElement.style.display = "none" ;
+  instructionElement.textContent = "Europe: 'D', asia: 'F', north-america: 'G'. Press 'a' for results!";
   for (let i = 0; i<30; i++) {
     images[i]= i;
   }
@@ -209,25 +263,30 @@ function shuffle(array) {
 }
 
 function stopExperiment() {
+  downloadResults();
   // cancel any ongoing tests
   clearTimeout(testStimulusTimeout);
   stimulusIsVisible = false;
   experimentActive = false;
-
+  document.getElementById('pressA').style.display = "none";
+  stimulusElement.style.display = "none";
   // reset instruction and show results
-  instruction.textContent = 'Press space to start!';
+  instruction.textContent =  'Press space to restart! Press \'b\' to download your results!';
   showResults();
 }
 
 window.addEventListener('keydown', (event) => {
-  if (times.length < 30) {
+  
   if (event.key === 'd') {
     if (images[ times.length] < 10) {
       truEu++;
-    } else if (images[ times.length] > 9 && images[ times.length] < 20) {
+      countEu++;
+    } else if (images[ times.length] > 9 && images[times.length] < 20) {
       falAs++;
+      countAs++;
     } else {
       falNA++;
+      countNA++;
     }
     if (stimulusIsVisible) {
       // record reaction time
@@ -248,10 +307,13 @@ window.addEventListener('keydown', (event) => {
   } else if (event.key === 'f') {
     if (images[ times.length] > 9 && images[ times.length] < 20) {
       truAs++;
+      countAs++;
     } else if (images[ times.length] < 10) {
       falEu++;
+      countEu++;
     } else {
       falNA++;
+      countNA++;
     }
     if (stimulusIsVisible) {
       // record reaction time
@@ -264,10 +326,13 @@ window.addEventListener('keydown', (event) => {
   } else if (event.key === 'g') {
     if (images[ times.length] > 19) {
       truNA++;
+      countNA++;
     } else if (images[ times.length] < 10) {
       falEu++;
+      countEu++;
     } else {
-      falNA++;
+      falAs++;
+      countAs++;
     }
     if (stimulusIsVisible) {
       // record reaction time
@@ -281,13 +346,17 @@ window.addEventListener('keydown', (event) => {
     if (experimentActive) {
       // stop the experiment and show results
       stopExperiment();
+      downloadResults();
     }
-  } else if (event.key === 'b') {
-    // ...
-  }
-}
-else {
-  stopExperiment();
+  } 
+
+else if (!experimentActive) {
+                if (event.key === 'n') {
+                    startNextExperiment();
+                } else if (event.key === 'b') {
+                    downloadResults();
+                }
+
 }
 }
 );
