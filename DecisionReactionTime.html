@@ -224,8 +224,8 @@
 
         function downloadResults() {
             const rows = [
-                ["Experiment", "successes", "errors", "premature error rate", "error rate green", "error rate blue", "mean", "mean green", "mean blue", "sd", "sd green", "sd blue"],
-                ["2", times.length, errors, (prematureErrors / errors).toFixed(3), (greenErrors / errors).toFixed(3), (blueErrors / errors).toFixed(3), getMean(times), getMean(greenTimes), getMean(blueTimes), getStandardDeviation(times), getStandardDeviation(greenTimes), getStandardDeviation(blueTimes)]
+                ["Experiment", "total attempts", "successes", "total error rate", "premature error rate", "error rate green", "error rate blue", "mean", "mean green", "mean blue", "sd", "sd green", "sd blue"],
+                ["2", totalAttempts, times.length, (errors / totalAttempts), (prematureErrors / totalAttempts).toFixed(3), (greenErrors / totalAttempts).toFixed(3), (blueErrors / totalAttempts).toFixed(3), getMean(times), getMean(greenTimes), getMean(blueTimes), getStandardDeviation(times), getStandardDeviation(greenTimes), getStandardDeviation(blueTimes)]
             ];
 
             let csvContent = "data:text/csv;charset=utf-8,";
