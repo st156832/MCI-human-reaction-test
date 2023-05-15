@@ -220,10 +220,10 @@
         stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
         greenStdDevElement.textContent = 'Green SD: ' + Math.round(greenStdDev) + ' ms';
         blueStdDevElement.textContent = 'Blue SD: ' + Math.round(blueStdDev) + ' ms';
-        errorElement.textContent = 'Errors: ' + errors;
-        greenErrorElement.textContent = 'Green Error Rate: ' + (greenErrors / errors).toFixed(3);
-        blueErrorElement.textContent = 'Blue Error Rate: ' + (blueErrors / errors).toFixed(3);
-        prematureErrorElement.textContent = 'Premature Error Rate: ' + (prematureErrors / errors).toFixed(3);
+        errorElement.textContent = 'Total Error Rate: ' + (errors / totalAttempts).toFixed(3);
+        greenErrorElement.textContent = 'Green Error Rate: ' + (greenErrors / totalAttempts).toFixed(3);
+        blueErrorElement.textContent = 'Blue Error Rate: ' + (blueErrors / totalAttempts).toFixed(3);
+        prematureErrorElement.textContent = 'Premature Error Rate: ' + (prematureErrors / totalAttempts).toFixed(3);
 
     }
 
