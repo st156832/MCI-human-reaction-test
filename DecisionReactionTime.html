@@ -213,7 +213,7 @@
         } else {
             timeElement.textContent = '';
         }
-        totalAttemptsElement.textContent = 'Attempts total: ' + totalAttempts;
+        totalAttemptsElement.textContent = 'Attempts total: ' + (times.length + errors);
         meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
         greenMeanElement.textContent = 'Green Mean: ' + Math.round(meanDeltaTimeGreen) + ' ms';
         blueMeanElement.textContent = 'Blue Mean: ' + Math.round(meanDeltaTimeBlue) + ' ms';
@@ -284,7 +284,7 @@
         clearTimeout(squareTimeout);
         stimulusIsVisible = false;
         experimentActive = false;
-
+        totalAttempts = times.length + errors;
         // reset instruction and show results
         instruction.textContent = (times.length + errors > 0) ? 'Press space to restart!' : 'Press space to restart!';
         showResults();
