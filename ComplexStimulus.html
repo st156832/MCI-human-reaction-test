@@ -155,8 +155,6 @@ function showResults() {
   faultRateEu = getFaultRateEu();
   faultRateAs = getFaultRateAs();
   faultRateNA = getFaultRateNA();
-  
-  timeElement.textContent = 'Press \'n\' to begin the next experiment';
   countElement.textContent = 'Count: ' + times.length;
   meanElement.textContent = 'Mean: ' + Math.round(meanDeltaTime) + ' ms';
   stdDevElement.textContent = 'SD: ' + Math.round(stdDev) + ' ms';
@@ -167,7 +165,7 @@ function showResults() {
 }
 
 function downloadResults() {
-            console.log("test1");
+            
             const rows = [
                 ["Experiment", "Meantime", "Standard Derivation", "total error rate", "europe error rate", "asia error rate", "north-america error rate"],
                 ["3", Math.round(meanDeltaTime),Math.round(stdDev), Math.round(getFaultRate()), Math.round(getFaultRateEu()), Math.round(getFaultRateAs()), Math.round(getFaultRateNA())]
@@ -182,7 +180,7 @@ function downloadResults() {
 
             var encodedUri = encodeURI(csvContent);
             location.href = (encodedUri);
-            console.log("test2");
+            
           
 }
 
@@ -202,6 +200,7 @@ function startNextExperiment() {
 
 function startTestTrial() {
    if (times.length === 30){
+                instructionElement.textContent = 'Press n for next experiment.';
                 downloadResults();
                 stopExperiment();
                 
@@ -215,8 +214,8 @@ function startTestTrial() {
   if (img != null) {
     img.style.display = "none";
   }
-  // schedule the stimulus to appear after a random amount of time Math.random() * 4 + 2;
-  let timeToWaitInSeconds = 1  // 2 - 6s
+  // schedule the stimulus to appear after a random amount of time
+  let timeToWaitInSeconds =  Math.random() * 4 + 2; // 2 - 6s
   testStimulusTimeout = setTimeout(showStimulus, timeToWaitInSeconds * 1000);
   }
 }
@@ -250,6 +249,7 @@ function startExperiment() {
   clearResults(); // clear results of any previous tests
   infoElement.style.display = "none" ;
   instructionElement.textContent = "Europe: 'D', asia: 'F', north-america: 'G'. Press 'a' for results!";
+  instructionElement.style.display = "block";
   for (let i = 0; i<30; i++) {
     images[i]= i;
   }
@@ -281,7 +281,6 @@ function stopExperiment() {
   document.getElementById('pressA').style.display = "none";
   stimulusElement.style.display = "none";
   // reset instruction and show results
-  instruction.textContent =  'Press space to restart!';
   showResults();
 }
 
@@ -350,6 +349,7 @@ window.addEventListener('keydown', (event) => {
     }
   } else if (event.key === 'a') {
     if (experimentActive) {
+      instructionElement.textContent = "press space to restart";
       // stop the experiment and show results
       stopExperiment();
       
