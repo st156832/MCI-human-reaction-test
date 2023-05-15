@@ -206,7 +206,9 @@ function startNextExperiment() {
 
 function startTestTrial() {
    if (times.length === 30){
+                downloadResults();
                 stopExperiment();
+                
   }else{
   // reset the stimulus
   setStimulusColor('white');
@@ -246,7 +248,6 @@ function recordStimulusReactionTime() {
   let deltaTime = Date.now() - stimulusTimestamp;
   times.push(deltaTime);
   timeElement.textContent = deltaTime + ' ms';
-  console.log(times);
 }
 
 function startExperiment() {
@@ -277,7 +278,6 @@ function shuffle(array) {
 }
 
 function stopExperiment() {
-  downloadResults();
   // cancel any ongoing tests
   clearTimeout(testStimulusTimeout);
   stimulusIsVisible = false;
@@ -285,7 +285,7 @@ function stopExperiment() {
   document.getElementById('pressA').style.display = "none";
   stimulusElement.style.display = "none";
   // reset instruction and show results
-  instruction.textContent =  'Press space to restart! Press \'b\' to download your results! Press \'n\' to start next experiment.';
+  instruction.textContent =  'Press space to restart! Press \'n\' to start next experiment.';
   showResults();
 }
 
@@ -356,15 +356,14 @@ window.addEventListener('keydown', (event) => {
     if (experimentActive) {
       // stop the experiment and show results
       stopExperiment();
+      
     }
   } 
 
 else if (!experimentActive) {
                 if (event.key === 'n') {
                     startNextExperiment();
-                } else if (event.key === 'b') {
-                    downloadResults();
-                }
+                } 
 
 }
 }
