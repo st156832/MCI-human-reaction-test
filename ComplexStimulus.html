@@ -7,9 +7,13 @@ font-family:
   sans-serif;
 }
 #stimulus {
-height:
-  max;
+  height: max;
 }
+
+p::after {
+        content: '\200b';
+}
+
 </style>
   </head>
   <body>
@@ -24,7 +28,7 @@ height:
                 <p id="visibleCounter"></p>
                 <p id="time" style="font-weight: bold;"></p>
             </center>
-  <div id="stimulus" style="display: block; margin-left: auto; margin-right: auto; width: 50%;"></div>
+  <div id="stimulus" style="position: absolute; left: 50%; transform: translate(-50%);"></div>
   <p id="time"></p>
   <p id="count"></p>
   <p id="mean"></p>
