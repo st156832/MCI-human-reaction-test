@@ -207,7 +207,7 @@
         let greenStdDev = getStandardDeviation(greenTimes);
         let blueStdDev = getStandardDeviation(blueTimes);
 
-        if (times.length === 30) {
+        if (times.length === 3) {
             timeElement.textContent = 'Press \'n\' to begin the next experiment';
             document.getElementById("stimContainer").style.display = 'none';
         } else {
@@ -305,7 +305,7 @@
                 if (stimulusIsTriangle) {
                     // start next trial
                     recordStimulusReactionTime();
-                    if (times.length === 30) {
+                    if (times.length === 3) {
                         stopExperiment();
                         downloadResults();
                         validCounterElement.textContent = "Valid Attempts: " + validCounter;
@@ -341,7 +341,7 @@
                 // stop the experiment and show results
                 stopExperiment();
             }
-        } else if (event.key === 'n' && !experimentActive && times.length === 30) {
+        } else if (event.key === 'n' && !experimentActive && times.length === 3) {
             startNextExperiment();
         }
     });
